@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">MazeBall</string>
+    <string name="game_screen">Game Screen</string>
+    <string name="settings">Settings</string>
+</resources>
