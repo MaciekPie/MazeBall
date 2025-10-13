@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.MazeBall" parent="android:Theme.Material.Light.NoActionBar" />
+    //Oryginal ale nie dzialal z GameActivity
+    <style name="Theme.MaazeBall" parent="android:Theme.Material.Light.NoActionBar" />
+    //
+    <style name="Theme.MazeBall" parent="Theme.AppCompat.Light.NoActionBar" />
 </resources>

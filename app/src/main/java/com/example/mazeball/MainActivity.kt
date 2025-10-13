@@ -32,7 +32,9 @@ class MainActivity : ComponentActivity() {
 
         startButton.setOnClickListener {
             // przejście do ekranu gry
-            Toast.makeText(this, "Starting game...", Toast.LENGTH_SHORT).show()
+            // Toast.makeText(this, "Starting game...", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, GameActivity::class.java)
+            startActivity(intent)
         }
 
         settingsButton.setOnClickListener {
