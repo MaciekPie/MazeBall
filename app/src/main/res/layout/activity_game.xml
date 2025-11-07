@@ -6,19 +6,28 @@
     android:background="#121212">
 
 
-    <!-- Ball -->
+    <com.example.mazeball.MazeView
+        android:id="@+id/maze_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FFFFFF" />
+
+    <!--
     <View
         android:id="@+id/ball"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_gravity="center"
         android:background="@drawable/ball_shape" />
+    -->
 
+    <!-- added layout_gravity -->
     <Button
         android:id="@+id/pause_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
+        android:layout_gravity="top|start"
         android:text="@string/stop" />
 
     <LinearLayout
@@ -28,13 +37,15 @@
         android:background="#A0000000"
         android:orientation="vertical"
         android:gravity="center"
-        android:visibility="gone" > <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/stop"
-        android:textSize="48sp"
-        android:textColor="#FFFFFF"
-        android:layout_marginBottom="50dp"/>
+        android:visibility="gone" >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/stop"
+            android:textSize="48sp"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="50dp"/>
 
         <Button
             android:id="@+id/resume_button"
