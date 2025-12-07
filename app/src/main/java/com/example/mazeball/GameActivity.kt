@@ -13,6 +13,8 @@ import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import kotlin.math.max
 import kotlin.math.min
+import android.widget.Toast
+import android.content.Intent
 
 class GameActivity : AppCompatActivity(), SensorEventListener {
 
@@ -171,6 +173,8 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
 
             mazeView.updateBallPosition(ballX, ballY)
         }
+
+        checkWinCondition()
     }
 
     private fun checkCollision(newX: Float, newY: Float): Pair<Float, Float> {
@@ -230,93 +234,38 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
         return correctedX to correctedY
     }
 
-    private fun checkCollisionWithWalls(proposedX: Float, proposedY: Float): Pair<Float, Float> {
-        // Obliczamy rozmiar komórki (ten sam sposób jak w setMaze)
-        val cellSize = minOf(mazeView.width / maze.width.toFloat(), mazeView.height / maze.height.toFloat())
-        val ballRadius = cellSize / 3f
-        val centerX = proposedX + ballRadius
-        val centerY = proposedY + ballRadius
+    private fun checkWinCondition() {
+        val mazeWidthPx = mazeView.width.toFloat()
+        val mazeHeightPx = mazeView.height.toFloat()
 
-        // Indeks komórki (na podstawie środka kulki)
-        val cellX = (centerX / cellSize).toInt().coerceIn(0, maze.width - 1)
-        val cellY = (centerY / cellSize).toInt().coerceIn(0, maze.height - 1)
-        val cell = maze.grid[cellY][cellX]
+        val cellWidth = mazeWidthPx / maze.width.toFloat()
+        val cellHeight = mazeHeightPx / maze.height.toFloat()
 
-        // Ręczne granice komórki
-        val left = cellX * cellSize
-        val right = (cellX + 1) * cellSize
-        val top = cellY * cellSize
-        val bottom = (cellY + 1) * cellSize
+        // w której komórce jest środek piłki
+        val cellX = (ballX / cellWidth).toInt().coerceIn(0, maze.width - 1)
+        val cellY = (ballY / cellHeight).toInt().coerceIn(0, maze.height - 1)
 
-        // Margines mały, żeby uniknąć drgania
-        val eps = 0.5f
-
-        var correctedCenterX = centerX
-        var correctedCenterY = centerY
-
-        // Left wall: jeśli jest i kula próbuje przeniknąć
-        if (cell.wallLeft) {
-            val minAllowedCenterX = left + ballRadius + eps
-            if (correctedCenterX - ballRadius < minAllowedCenterX) correctedCenterX = minAllowedCenterX
-        } else {
-            // Jeśli nie ma lewej ściany, ale sąsiedni cell po lewej ma right wall — też blokuje
-            if (cellX > 0) {
-                val leftNeighbor = maze.grid[cellY][cellX - 1]
-                if (leftNeighbor.wallRight) {
-                    val minAllowedCenterX = left + ballRadius + eps
-                    if (correctedCenterX - ballRadius < minAllowedCenterX) correctedCenterX = minAllowedCenterX
-                }
-            }
+        if (cellX == maze.goalX && cellY == maze.goalY) {
+            onLevelWon()
         }
-
-        // Right wall
-        if (cell.wallRight) {
-            val maxAllowedCenterX = right - ballRadius - eps
-            if (correctedCenterX + ballRadius > maxAllowedCenterX) correctedCenterX = maxAllowedCenterX
-        } else {
-            if (cellX < maze.width - 1) {
-                val rightNeighbor = maze.grid[cellY][cellX + 1]
-                if (rightNeighbor.wallLeft) {
-                    val maxAllowedCenterX = right - ballRadius - eps
-                    if (correctedCenterX + ballRadius > maxAllowedCenterX) correctedCenterX = maxAllowedCenterX
-                }
-            }
-        }
-
-        // Top wall
-        if (cell.wallTop) {
-            val minAllowedCenterY = top + ballRadius + eps
-            if (correctedCenterY - ballRadius < minAllowedCenterY) correctedCenterY = minAllowedCenterY
-        } else {
-            if (cellY > 0) {
-                val topNeighbor = maze.grid[cellY - 1][cellX]
-                if (topNeighbor.wallBottom) {
-                    val minAllowedCenterY = top + ballRadius + eps
-                    if (correctedCenterY - ballRadius < minAllowedCenterY) correctedCenterY = minAllowedCenterY
-                }
-            }
-        }
-
-        // Bottom wall
-        if (cell.wallBottom) {
-            val maxAllowedCenterY = bottom - ballRadius - eps
-            if (correctedCenterY + ballRadius > maxAllowedCenterY) correctedCenterY = maxAllowedCenterY
-        } else {
-            if (cellY < maze.height - 1) {
-                val bottomNeighbor = maze.grid[cellY + 1][cellX]
-                if (bottomNeighbor.wallTop) {
-                    val maxAllowedCenterY = bottom - ballRadius - eps
-                    if (correctedCenterY + ballRadius > maxAllowedCenterY) correctedCenterY = maxAllowedCenterY
-                }
-            }
-        }
-
-        // Zamieniamy center na top-left (bo Twoje updateBallPosition oczekuje top-left)
-        val correctedX = (correctedCenterX - ballRadius).coerceIn(minX, maxX)
-        val correctedY = (correctedCenterY - ballRadius).coerceIn(minY, maxY)
-
-        return correctedX to correctedY
     }
+
+    private fun onLevelWon() {
+        // Zatrzymaj ruch
+        sensorManager.unregisterListener(this)
+
+        // Prosty Toast z napisem "Wygrana!"
+        Toast.makeText(this, "Wygrana!", Toast.LENGTH_SHORT).show()
+
+        // Po krótkim opóźnieniu wróć do wyboru levelu
+        mazeView.postDelayed({
+            val intent = Intent(this, LevelSelectActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(intent)
+            finish()
+        }, 1000) // 1 sekunda na zobaczenie napisu
+    }
+
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 }

@@ -24,7 +24,30 @@ class Maze(val width: Int, val height: Int) {
 
     init {
         generateDFS()
+        chooseRandomStartOnBorder()
         findFurthestGoal()
+    }
+
+    private fun chooseRandomStartOnBorder() {
+        val rand = Random(System.currentTimeMillis())
+        when (rand.nextInt(4)) {
+            0 -> { // lewa krawędź
+                startX = 0
+                startY = rand.nextInt(height)
+            }
+            1 -> { // prawa krawędź
+                startX = width - 1
+                startY = rand.nextInt(height)
+            }
+            2 -> { // górna krawędź
+                startX = rand.nextInt(width)
+                startY = 0
+            }
+            3 -> { // dolna krawędź
+                startX = rand.nextInt(width)
+                startY = height - 1
+            }
+        }
     }
 
     private fun generateDFS() {

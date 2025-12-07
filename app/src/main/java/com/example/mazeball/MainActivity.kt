@@ -24,9 +24,11 @@ class MainActivity : ComponentActivity() {
         val settingsButton = findViewById<Button>(R.id.settingsButton)
 
         startButton.setOnClickListener {
-            // przejście do ekranu gry
-            // Toast.makeText(this, "Starting game...", Toast.LENGTH_SHORT).show()
+            /*
             val intent = Intent(this, GameActivity::class.java)
+            startActivity(intent)
+            */
+            val intent = Intent(this, LevelSelectActivity::class.java)
             startActivity(intent)
         }
 
