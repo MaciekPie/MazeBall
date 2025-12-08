@@ -1,6 +1,7 @@
 package com.example.mazeball
 
 import android.content.Context
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -10,35 +11,26 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
-import androidx.appcompat.app.AppCompatActivity
+import android.widget.Toast
 import kotlin.math.max
 import kotlin.math.min
-import android.widget.Toast
-import android.content.Intent
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 
 class GameActivity : AppCompatActivity(), SensorEventListener {
 
     private lateinit var sensorManager: SensorManager
     private lateinit var mazeView: MazeView
-    private lateinit var maze: Maze
-    private var mazeInitialized = false
-    private var ballX = 0f
-    private var ballY = 0f
-    private var maxX = 0f
-    private var maxY = 0f
-    private var minX = 0f
-    private var minY = 0f
-    private var ballRadius = 0f
-    private var cellSize = 0f
     private lateinit var pauseOverlay: LinearLayout
-    private var isPaused = false // Stan gry
+    private var mazeInitialized = false
+
+    private val viewModel: GameViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         // Lock orientation programmatically
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-
         setContentView(R.layout.activity_game)
 
         mazeView = findViewById(R.id.maze_view)
@@ -53,12 +45,12 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
 
         // Checking buttons
         pauseButton.setOnClickListener {
-            setPaused(true)
+            viewModel.setPaused(true) // setPaused(true)
         }
 
         // Resume
         resumeButton.setOnClickListener {
-            setPaused(false)
+            viewModel.setPaused(false) // setPaused(true)
         }
 
         // Menu
@@ -68,51 +60,85 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
 
         // Settings
         settingsButton.setOnClickListener {
-            //
+            // TODO
         }
 
-        // Wait until layout is ready to get screen limits
+        // Observers
+        viewModel.maze.observe(this) { m ->
+            m?.let { mazeView.setMaze(it) }
+        }
 
+        viewModel.ballX.observe(this) { x ->
+            val y = viewModel.ballY.value ?: return@observe
+            mazeView.updateBallPosition(x, y)
+        }
+
+        viewModel.ballY.observe(this) { y ->
+            val x = viewModel.ballX.value ?: return@observe
+            mazeView.updateBallPosition(x, y)
+        }
+
+        viewModel.isPaused.observe(this) { paused ->
+            if (paused) {
+                pauseOverlay.visibility = View.VISIBLE
+                sensorManager.unregisterListener(this)
+            } else {
+                pauseOverlay.visibility = View.GONE
+                // Register sensor (only if activity is resumed)
+                if (!isFinishing) {
+                    sensorManager.registerListener(
+                        this,
+                        sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+                        SensorManager.SENSOR_DELAY_GAME
+                    )
+                }
+            }
+        }
+
+        viewModel.levelWon.observe(this) { won ->
+            if (won == true) {
+                // Show toast and return to level select
+                Toast.makeText(this, "You won!", Toast.LENGTH_SHORT).show()
+                // small delay to let user see toast (postDelayed)
+                mazeView.postDelayed({
+                    val intent = Intent(this, LevelSelectActivity::class.java)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+                    startActivity(intent)
+                    finish()
+                }, 1000)
+                viewModel.resetLevelWonFlag()
+            }
+        }
+
+        // Layout ready -> initialize maze in ViewModel (and restore a saved level if passed)
         mazeView.viewTreeObserver.addOnGlobalLayoutListener {
-            if (!mazeInitialized) {
+            if (!mazeInitialized && mazeView.width > 0 && mazeView.height > 0) {
                 mazeInitialized = true
 
-                // Wybierz liczbę kolumn (np. 10) i policz wielkość komórki tak, aby zmieścić w pionie całe rzędy
-                val cols = 10
-                cellSize = mazeView.width / cols.toFloat()
-                val rows = max(1, (mazeView.height / cellSize).toInt())
-
-                maze = Maze(cols, rows)
-                mazeView.setMaze(maze)
-
-                ballRadius = cellSize * 0.9f
-                ballX = (maze.startX + 0.5f) * cellSize
-                ballY = (maze.startY + 0.5f) * cellSize
-
-                // Ustal granice (top-left coordinates dla ballX/ballY)
-                minX = ballRadius / 2
-                minY = ballRadius / 2
-                maxX = (mazeView.width - ballRadius / 2)
-                maxY = (mazeView.height - ballRadius / 2)
-
-                ballX = ballX.coerceIn(minX, maxX)
-                ballY = ballY.coerceIn(minY, maxY)
-
-                // Przekaż labirynt i pozycję do MazeView (załóżmy, że masz setMaze(maze, initialX, initialY))
-                mazeView.updateBallPosition(ballX, ballY)
+                val intentLevelId = intent.getIntExtra("LEVEL_ID", -1)
+                if (intentLevelId != -1) {
+                    // load level from storage and pass into viewModel
+                    val storage = LevelStorage(this)
+                    val level = storage.getLevelById(intentLevelId)
+                    if (level != null) {
+                        viewModel.initMazeFromLevel(level, mazeView.width, mazeView.height)
+                    } else {
+                        // fallback to generated maze
+                        viewModel.initMaze(10, maxOf(1, (mazeView.height / (mazeView.width / 10f)).toInt()), mazeView.width, mazeView.height)
+                    }
+                } else {
+                    val cols = 10
+                    val rows = maxOf(1, (mazeView.height / (mazeView.width / cols.toFloat())).toInt())
+                    viewModel.initMaze(cols, rows, mazeView.width, mazeView.height)
+                }
             }
         }
     }
 
-    private fun setPaused(paused: Boolean) {
-        isPaused = paused
-        if (isPaused) {
-            // ZATRZYMANIE RUCHU: Ukrywamy nakładkę i wyrejestrowujemy sensor
-            pauseOverlay.visibility = View.VISIBLE
-            sensorManager.unregisterListener(this)
-        } else {
-            // WZNOWIENIE RUCHU: Ukrywamy nakładkę i rejestrujemy sensor
-            pauseOverlay.visibility = View.GONE
+    override fun onResume() {
+        super.onResume()
+        // Register sensor if not paused
+        if (viewModel.isPaused.value != true) {
             sensorManager.registerListener(
                 this,
                 sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
@@ -121,149 +147,18 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        sensorManager.registerListener(
-            this,
-            sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-            SensorManager.SENSOR_DELAY_GAME
-        )
-    }
-
     override fun onPause() {
         super.onPause()
         sensorManager.unregisterListener(this)
     }
 
-
-
     override fun onSensorChanged(event: SensorEvent?) {
         if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
-
-            // Odczyt z akcelerometru
             val accX = event.values[0]
             val accY = event.values[1]
-
-            // Stała prędkość/czułość - możesz ją dostosować
-            val SPEED_FACTOR = 3.5f
-
-            // W Androidzie:
-            // - Wzrost X to RUCH W PRAWO
-            // - Wzrost Y to RUCH W DÓŁ
-
-            // Ruch X: Przechylenie w PRAWO (ujemne accX) ma przesunąć kulkę W PRAWO (dodatnie dX)
-            // Ruch Y: Przechylenie DO PRZODU (ujemne accY) ma przesunąć kulkę W GÓRĘ (ujemne dY)
-
-            //
-            val dX = -accX * SPEED_FACTOR
-            val dY = accY * SPEED_FACTOR // Wystarczy odwrócić Y, tak by ujemne accY (pochylenie do przodu) dawało ujemne dY (ruch w górę)
-
-            // Move the ball
-            ballX += dX
-            ballY += dY
-
-            // Apply the boundaries
-            ballX = ballX.coerceIn(minX, maxX)
-            ballY = ballY.coerceIn(minY, maxY)
-
-            // Check maze wall collisions
-            val corrected = checkCollision(ballX, ballY)
-            ballX = corrected.first
-            ballY = corrected.second
-
-            mazeView.updateBallPosition(ballX, ballY)
+            // Delegate movement handling to ViewModel
+            viewModel.onAccelerometer(accX, accY)
         }
-
-        checkWinCondition()
-    }
-
-    private fun checkCollision(newX: Float, newY: Float): Pair<Float, Float> {
-        val cellWidth = mazeView.width / maze.width.toFloat()
-        val cellHeight = mazeView.height / maze.height.toFloat()
-
-        val ballR = ballRadius / 2f // promień liczony od środka
-        var correctedX = newX
-        var correctedY = newY
-
-        // Oblicz w której komórce znajduje się środek kulki
-        val cellX = (newX / cellWidth).toInt().coerceIn(0, maze.width - 1)
-        val cellY = (newY / cellHeight).toInt().coerceIn(0, maze.height - 1)
-        val cell = maze.grid[cellY][cellX]
-
-        // Współrzędne aktualnej komórki
-        val left = cellX * cellWidth
-        val right = (cellX + 1) * cellWidth
-        val top = cellY * cellHeight
-        val bottom = (cellY + 1) * cellHeight
-
-        // --- Sprawdzenie kolizji ze ścianami aktualnej lub sąsiednich komórek ---
-        val eps = 0.5f // mały margines
-
-        // Lewa ściana
-        if (cell.wallLeft && newX - ballR < left) {
-            correctedX = left + ballR + eps
-        } else if (cellX > 0 && maze.grid[cellY][cellX - 1].wallRight && newX - ballR < left) {
-            correctedX = left + ballR + eps
-        }
-
-        // Prawa ściana
-        if (cell.wallRight && newX + ballR > right) {
-            correctedX = right - ballR - eps
-        } else if (cellX < maze.width - 1 && maze.grid[cellY][cellX + 1].wallLeft && newX + ballR > right) {
-            correctedX = right - ballR - eps
-        }
-
-        // Górna ściana
-        if (cell.wallTop && newY - ballR < top) {
-            correctedY = top + ballR + eps
-        } else if (cellY > 0 && maze.grid[cellY - 1][cellX].wallBottom && newY - ballR < top) {
-            correctedY = top + ballR + eps
-        }
-
-        // Dolna ściana
-        if (cell.wallBottom && newY + ballR > bottom) {
-            correctedY = bottom - ballR - eps
-        } else if (cellY < maze.height - 1 && maze.grid[cellY + 1][cellX].wallTop && newY + ballR > bottom) {
-            correctedY = bottom - ballR - eps
-        }
-
-        // Ostatecznie ogranicz do ekranu
-        correctedX = correctedX.coerceIn(minX, maxX)
-        correctedY = correctedY.coerceIn(minY, maxY)
-
-        return correctedX to correctedY
-    }
-
-    private fun checkWinCondition() {
-        val mazeWidthPx = mazeView.width.toFloat()
-        val mazeHeightPx = mazeView.height.toFloat()
-
-        val cellWidth = mazeWidthPx / maze.width.toFloat()
-        val cellHeight = mazeHeightPx / maze.height.toFloat()
-
-        // w której komórce jest środek piłki
-        val cellX = (ballX / cellWidth).toInt().coerceIn(0, maze.width - 1)
-        val cellY = (ballY / cellHeight).toInt().coerceIn(0, maze.height - 1)
-
-        if (cellX == maze.goalX && cellY == maze.goalY) {
-            onLevelWon()
-        }
-    }
-
-    private fun onLevelWon() {
-        // Zatrzymaj ruch
-        sensorManager.unregisterListener(this)
-
-        // Prosty Toast z napisem "Wygrana!"
-        Toast.makeText(this, "Wygrana!", Toast.LENGTH_SHORT).show()
-
-        // Po krótkim opóźnieniu wróć do wyboru levelu
-        mazeView.postDelayed({
-            val intent = Intent(this, LevelSelectActivity::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-            startActivity(intent)
-            finish()
-        }, 1000) // 1 sekunda na zobaczenie napisu
     }
 
 
