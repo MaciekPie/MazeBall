@@ -177,43 +177,43 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    private fun buildLevelFromMaze(id: Int, maze: Maze): Level {
-        val gridState = mutableListOf<MutableList<CellState>>()
-
-        for (y in 0 until maze.height) {
-            val row = mutableListOf<CellState>()
-            for (x in 0 until maze.width) {
-                val cell = maze.grid[y][x]
-                row.add(
-                    CellState(
-                        wallTop = cell.wallTop,
-                        wallBottom = cell.wallBottom,
-                        wallLeft = cell.wallLeft,
-                        wallRight = cell.wallRight
-                    )
-                )
-            }
-            gridState.add(row)
-        }
-
-        return Level(
-            id = id,
-            width = maze.width,
-            height = maze.height,
-            startX = maze.startX,
-            startY = maze.startY,
-            goalX = maze.goalX,
-            goalY = maze.goalY,
-            grid = gridState
-        )
-    }
-
-    private fun generateNextLevelId(storage: LevelStorage): Int {
-        val levels = storage.getLevels()
-        val maxId = levels.maxOfOrNull { it.id } ?: 0
-        return maxId + 1
-    }
-
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+}
+
+private fun buildLevelFromMaze(id: Int, maze: Maze): Level {
+    val gridState = mutableListOf<MutableList<CellState>>()
+
+    for (y in 0 until maze.height) {
+        val row = mutableListOf<CellState>()
+        for (x in 0 until maze.width) {
+            val cell = maze.grid[y][x]
+            row.add(
+                CellState(
+                    wallTop = cell.wallTop,
+                    wallBottom = cell.wallBottom,
+                    wallLeft = cell.wallLeft,
+                    wallRight = cell.wallRight
+                )
+            )
+        }
+        gridState.add(row)
+    }
+
+    return Level(
+        id = id,
+        width = maze.width,
+        height = maze.height,
+        startX = maze.startX,
+        startY = maze.startY,
+        goalX = maze.goalX,
+        goalY = maze.goalY,
+        grid = gridState
+    )
+}
+
+private fun generateNextLevelId(storage: LevelStorage): Int {
+    val levels = storage.getLevels()
+    val maxId = levels.maxOfOrNull { it.id } ?: 0
+    return maxId + 1
 }
