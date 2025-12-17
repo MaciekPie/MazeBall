@@ -34,6 +34,12 @@
             android:theme="@style/Theme.MazeBall">
         </activity>
 
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MazeBall">
+        </activity>
+
     </application>
 
 </manifest>

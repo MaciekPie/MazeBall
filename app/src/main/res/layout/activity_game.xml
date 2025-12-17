@@ -12,15 +12,6 @@
         android:layout_height="match_parent"
         android:background="#FFFFFF" />
 
-    <!--
-    <View
-        android:id="@+id/ball"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_gravity="center"
-        android:background="@drawable/ball_shape" />
-    -->
-
     <!-- added layout_gravity -->
     <Button
         android:id="@+id/pause_button"
@@ -60,12 +51,6 @@
             android:layout_height="wrap_content"
             android:text="@string/menu"
             android:layout_marginBottom="20dp"/>
-
-        <Button
-            android:id="@+id/settings_button"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:text="@string/settings" />
 
     </LinearLayout>
 

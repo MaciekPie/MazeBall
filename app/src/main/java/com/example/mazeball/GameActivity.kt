@@ -36,11 +36,32 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
         mazeView = findViewById(R.id.maze_view)
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
+        // Color map
+        val colorMap = mapOf(
+            "BLUE" to R.color.maze_bg_blue,
+            "GREEN" to R.color.maze_bg_green,
+            "RED" to R.color.maze_bg_red,
+            "WHITE" to R.color.maze_bg_white,
+            "CREAM" to R.color.maze_bg_cream,
+            "ORANGE" to R.color.maze_bg_orange
+        )
+
+        // Load colors from settings
+        val prefs = getSharedPreferences("settings_prefs", MODE_PRIVATE)
+        val bgColorKey = prefs.getString("bg_color", "WHITE") ?: "WHITE"
+        val ballColorKey = prefs.getString("ball_color", "RED") ?: "RED"
+
+        val bgColorRes = colorMap[bgColorKey] ?: R.color.maze_bg_white
+        val ballColorRes = colorMap[ballColorKey] ?: R.color.maze_bg_red
+
+        mazeView.setColors(bgColorRes, ballColorRes)
+
+
         // Initiation
         val pauseButton: Button = findViewById(R.id.pause_button)
         val resumeButton: Button = findViewById(R.id.resume_button)
         val menuButton: Button = findViewById(R.id.menu_button)
-        val settingsButton: Button = findViewById(R.id.settings_button)
+        //val settingsButton: Button = findViewById(R.id.settings_button)
         pauseOverlay = findViewById(R.id.pause_overlay)
 
         // Checking buttons
@@ -59,9 +80,11 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
         }
 
         // Settings
+        /*
         settingsButton.setOnClickListener {
-            // TODO
-        }
+            val intent = Intent(this, SettingsActivity::class.java)
+            startActivity(intent)
+        }*/
 
         // Observers
         viewModel.maze.observe(this) { m ->

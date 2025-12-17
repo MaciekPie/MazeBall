@@ -7,10 +7,22 @@ import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
 import kotlin.math.min
+import androidx.core.content.ContextCompat
 
 class MazeView(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
-    // --- Rysowanie: Obiekty Paint ---
+    // --- Data Model and sizes ---
+    private var maze: Maze? = null
+    private var cellSize = 0f // Size of 1 cell in px
+    private var ballRadius = 0f
+
+    // Ball position (from GameActivity)
+    var ballXCenter = 0f // Middle X
+    var ballYCenter = 0f // Middle Y
+
+    var backgroundColorRes = R.color.maze_bg_white  // domyślnie biały
+    var ballColorRes = R.color.maze_bg_red         // domyślnie czerwony
+
     private val wallPaint = Paint().apply {
         color = Color.BLACK
         strokeWidth = 6f // Grubość ściany
@@ -34,16 +46,13 @@ class MazeView(context: Context, attrs: AttributeSet) : View(context, attrs) {
         style = Paint.Style.FILL
     }
 
-    // --- Model Danych i Wymiary ---
-    private var maze: Maze? = null
-    private var cellSize = 0f // Rozmiar jednej komórki w pikselach
-    private var ballRadius = 0f
+    fun setColors(bgColorResId: Int, ballColorResId: Int) {
+        backgroundColorRes = bgColorResId
+        ballColorRes = ballColorResId
+        invalidate()
+    }
 
-    // Pozycja kulki (przekazywana z GameActivity)
-    var ballXCenter = 0f // Środek X
-    var ballYCenter = 0f // Środek Y
-
-    // Ustawia labirynt, wylicza rozmiary i wymusza rysowanie
+    // Setting maze, defines sizes and starts drawing
     fun setMaze(newMaze: Maze) {
         maze = newMaze
 
@@ -78,6 +87,9 @@ class MazeView(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+
+        ballPaint.color = ContextCompat.getColor(context, ballColorRes)
+        setBackgroundColor(ContextCompat.getColor(context, backgroundColorRes))
 
         maze?.let { m ->
             // Draw maze walls

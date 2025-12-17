@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#121212"
+    android:padding="24dp">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings"
+            android:textSize="28sp"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="32dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/background_color"
+            android:textSize="20sp"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="16dp" />
+
+        <RadioGroup android:id="@+id/bgColorGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp">
+
+            <RadioButton android:id="@+id/bgBlue" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/blue" android:textColor="#FFFFFF"/>
+            <RadioButton android:id="@+id/bgGreen" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/green" android:textColor="#FFFFFF"/>
+            <RadioButton android:id="@+id/bgRed" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/red" android:textColor="#FFFFFF"/>
+            <RadioButton android:id="@+id/bgWhite" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/white" android:textColor="#FFFFFF"/>
+            <RadioButton android:id="@+id/bgCream" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/creamy" android:textColor="#FFFFFF"/>
+            <RadioButton android:id="@+id/bgOrange" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/orange" android:textColor="#FFFFFF"/>
+        </RadioGroup>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/ball_color"
+            android:textSize="20sp"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="16dp" />
+
+        <RadioGroup android:id="@+id/ballColorGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp">
+
+            <RadioButton android:id="@+id/ballBlue" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/blue" android:textColor="#FFFFFF"/>
+            <RadioButton android:id="@+id/ballGreen" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/green" android:textColor="#FFFFFF"/>
+            <RadioButton android:id="@+id/ballRed" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/red" android:textColor="#FFFFFF"/>
+            <RadioButton android:id="@+id/ballWhite" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/white" android:textColor="#FFFFFF"/>
+            <RadioButton android:id="@+id/ballCream" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/creamy" android:textColor="#FFFFFF"/>
+            <RadioButton android:id="@+id/ballOrange" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/orange" android:textColor="#FFFFFF"/>
+        </RadioGroup>
+
+        <Button
+            android:id="@+id/backButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/back"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#2196F3" />
+
+    </LinearLayout>
+</ScrollView>

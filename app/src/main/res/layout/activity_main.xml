@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:background="#121212"
+    android:background="#4E4545"
     android:padding="24dp"
     tools:context=".MainActivity">
 
@@ -23,7 +23,7 @@
     <Button
         android:id="@+id/startButton"
         android:text="@string/start"
-        android:layout_width="wrap_content"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:backgroundTint="#2196F3"
         android:textColor="#FFFFFF" />

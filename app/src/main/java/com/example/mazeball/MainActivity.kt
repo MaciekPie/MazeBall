@@ -24,30 +24,14 @@ class MainActivity : ComponentActivity() {
         val settingsButton = findViewById<Button>(R.id.settingsButton)
 
         startButton.setOnClickListener {
-            /*
-            val intent = Intent(this, GameActivity::class.java)
-            startActivity(intent)
-            */
             val intent = Intent(this, LevelSelectActivity::class.java)
             startActivity(intent)
         }
 
         settingsButton.setOnClickListener {
-            // TODO: dodaj ekran ustawień w przyszłości
+            val intent = Intent(this, SettingsActivity::class.java)
+            startActivity(intent)
         }
-
-        /*
-        enableEdgeToEdge()
-        setContent {
-            MazeBallTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
-        }*/
     }
 }
 

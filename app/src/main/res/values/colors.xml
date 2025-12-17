@@ -7,4 +7,12 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- My colors -->
+    <color name="maze_bg_blue">#FF2196F3</color>
+    <color name="maze_bg_green">#FF4CAF50</color>
+    <color name="maze_bg_red">#FFF44336</color>
+    <color name="maze_bg_white">#FFFFFFFF</color>
+    <color name="maze_bg_cream">#FFFFF3E0</color>
+    <color name="maze_bg_orange">#FFFF9800</color>
 </resources>
