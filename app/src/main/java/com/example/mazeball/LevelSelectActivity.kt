@@ -27,7 +27,7 @@ class LevelSelectActivity : AppCompatActivity() {
 
 
         // pusty adapter na start, dane dociągniemy w onResume
-        adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, mutableListOf())
+        adapter = ArrayAdapter(this, R.layout.item_level, R.id.levelNameText, mutableListOf())
         listView.adapter = adapter
 
         listView.onItemClickListener = AdapterView.OnItemClickListener { _, _, position, _ ->
