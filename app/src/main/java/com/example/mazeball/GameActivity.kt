@@ -97,7 +97,22 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
 
         viewModel.levelWon.observe(this) { won ->
             if (won == true) {
-                // Show toast and return to level select
+                // Download the maze from this level
+                val maze = viewModel.maze.value
+                if (maze != null) {
+                    val storage = LevelStorage(this)
+
+                    // Check LEVEL_ID if there is existing
+                    val existingId = intent.getIntExtra("LEVEL_ID", -1)
+                    val levelId = if (existingId != -1) {
+                        existingId
+                    } else {
+                        generateNextLevelId(storage)
+                    }
+
+                    val level = buildLevelFromMaze(levelId, maze)
+                    storage.addLevel(level)   // TU zapis do SharedPreferences
+                }
                 Toast.makeText(this, "You won!", Toast.LENGTH_SHORT).show()
                 // small delay to let user see toast (postDelayed)
                 mazeView.postDelayed({
@@ -106,6 +121,7 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
                     startActivity(intent)
                     finish()
                 }, 1000)
+
                 viewModel.resetLevelWonFlag()
             }
         }
@@ -159,6 +175,43 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
             // Delegate movement handling to ViewModel
             viewModel.onAccelerometer(accX, accY)
         }
+    }
+
+    private fun buildLevelFromMaze(id: Int, maze: Maze): Level {
+        val gridState = mutableListOf<MutableList<CellState>>()
+
+        for (y in 0 until maze.height) {
+            val row = mutableListOf<CellState>()
+            for (x in 0 until maze.width) {
+                val cell = maze.grid[y][x]
+                row.add(
+                    CellState(
+                        wallTop = cell.wallTop,
+                        wallBottom = cell.wallBottom,
+                        wallLeft = cell.wallLeft,
+                        wallRight = cell.wallRight
+                    )
+                )
+            }
+            gridState.add(row)
+        }
+
+        return Level(
+            id = id,
+            width = maze.width,
+            height = maze.height,
+            startX = maze.startX,
+            startY = maze.startY,
+            goalX = maze.goalX,
+            goalY = maze.goalY,
+            grid = gridState
+        )
+    }
+
+    private fun generateNextLevelId(storage: LevelStorage): Int {
+        val levels = storage.getLevels()
+        val maxId = levels.maxOfOrNull { it.id } ?: 0
+        return maxId + 1
     }
 
 

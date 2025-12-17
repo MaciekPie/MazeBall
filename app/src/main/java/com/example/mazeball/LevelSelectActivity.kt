@@ -11,6 +11,9 @@ import androidx.appcompat.app.AppCompatActivity
 
 class LevelSelectActivity : AppCompatActivity() {
     private lateinit var storage: LevelStorage
+    private lateinit var listView: ListView
+    private lateinit var adapter: ArrayAdapter<String>
+    private var levels: List<Level> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -18,15 +21,13 @@ class LevelSelectActivity : AppCompatActivity() {
 
         storage = LevelStorage(this)
 
-        val listView = findViewById<ListView>(R.id.levelListView)
+        listView = findViewById(R.id.levelListView)
         val backButton = findViewById<Button>(R.id.backButton)
         val newLevelButton = findViewById<Button>(R.id.newLevelButton)
 
-        val levels = storage.getLevels()
 
-        // Na początek prosty adapter z nazwą "Level X"
-        val items = levels.map { "Level ${it.id}" }
-        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, items)
+        // pusty adapter na start, dane dociągniemy w onResume
+        adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, mutableListOf())
         listView.adapter = adapter
 
         listView.onItemClickListener = AdapterView.OnItemClickListener { _, _, position, _ ->
@@ -45,5 +46,18 @@ class LevelSelectActivity : AppCompatActivity() {
             val intent = Intent(this, GameActivity::class.java)
             startActivity(intent)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        reloadLevels()
+    }
+
+    private fun reloadLevels() {
+        levels = storage.getLevels()
+        val items = levels.map { "Level ${it.id}" }
+        adapter.clear()
+        adapter.addAll(items)
+        adapter.notifyDataSetChanged()
     }
 }
